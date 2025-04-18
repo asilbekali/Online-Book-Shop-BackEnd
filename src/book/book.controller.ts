@@ -68,9 +68,6 @@ export class BookController {
     return this.bookService.findOne(id, req['user']);
   }
 
-// -------------------------------------------------------
-
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto){
     return this.bookService.update(id, updateBookDto);
