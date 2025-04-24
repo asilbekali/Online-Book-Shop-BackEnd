@@ -75,4 +75,3 @@ export class UserService {
   }
 }
 
-// dars 32 daqiqasida qoldi qolganini yetkazib olish kerak
