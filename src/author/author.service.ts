@@ -2,17 +2,21 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
-import { Author } from './entities/author.entity';
+import { Author } from '../entities/author.entity';
 import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthorService {
-  constructor(@InjectModel(Author.name) private author: Model<Author>) {}
+  constructor(
+    @InjectRepository(Author) private AuthorRepo: Repository<Author>,
+  ) {}
 
   async create(createAuthorDto: CreateAuthorDto) {
     try {
-      const newAuthor = new this.author(createAuthorDto);
-      return await newAuthor.save();
+      const newAuthor = await this.AuthorRepo.create(createAuthorDto);
+      return newAuthor;
     } catch (error) {
       console.error('Error in create:', error.message);
       throw new BadRequestException('Failed to create author');
@@ -34,12 +38,11 @@ export class AuthorService {
 
       const skip = (page - 1) * limit;
 
-      const authors = await this.author
-        .find(filterQuery)
-        .sort(sortQuery)
-        .skip(skip)
-        .limit(limit);
-      const totalAuthors = await this.author.countDocuments(filterQuery);
+      const [authors, totalAuthors] = await this.AuthorRepo.findAndCount({
+        order: { name: sort.toUpperCase() as 'ASC' | 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
       return {
         data: authors,
@@ -55,9 +58,9 @@ export class AuthorService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     try {
-      const author = await this.author.findById(id);
+      const author = await this.AuthorRepo.findOne({ where: { id } });
       if (!author) {
         throw new BadRequestException('Author not found');
       }
@@ -68,29 +71,34 @@ export class AuthorService {
     }
   }
 
-  async update(id: string, updateAuthorDto: UpdateAuthorDto) {
+  async update(id: number, updateAuthorDto: UpdateAuthorDto) {
     try {
-      const updatedAuthor = await this.author.findByIdAndUpdate(
-        id,
-        { $set: updateAuthorDto },
-        { new: true },
-      );
-      if (!updatedAuthor) {
-        throw new BadRequestException('Failed to update author');
+      const existingAuthor = await this.AuthorRepo.findOne({
+        where: { id },
+      });
+      if (!existingAuthor) {
+        throw new BadRequestException('Author not found');
       }
-      return updatedAuthor;
+
+      const updateAuthor = this.AuthorRepo.merge(
+        existingAuthor,
+        updateAuthorDto,
+      );
+      return await this.AuthorRepo.save(updateAuthor);
     } catch (error) {
       console.error('Error in update:', error.message);
       throw new BadRequestException(error.message);
     }
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     try {
-      const deletedAuthor = await this.author.findByIdAndDelete(id);
+      const deletedAuthor = await this.AuthorRepo.findOne({ where: { id } });
       if (!deletedAuthor) {
         throw new BadRequestException('Author not found or already deleted');
       }
+
+      await this.AuthorRepo.remove(deletedAuthor);
       return { message: 'Author successfully removed', author: deletedAuthor };
     } catch (error) {
       console.error('Error in remove:', error.message);

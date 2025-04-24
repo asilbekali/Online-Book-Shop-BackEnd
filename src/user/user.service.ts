@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './entities/user.entity';
+import { User } from '../entities/user.entity';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -71,7 +75,4 @@ export class UserService {
   }
 }
 
-
-
-
-// dars 32 daqiqasida qoldi qolganini yetkazib olish kerak 
+// dars 32 daqiqasida qoldi qolganini yetkazib olish kerak

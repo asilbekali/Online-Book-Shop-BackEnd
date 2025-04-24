@@ -6,9 +6,9 @@ import {
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { Model } from 'mongoose';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
-import { Book } from './entities/book.entity';
+import { Book } from '../entities/book.entity';
 
 @Injectable()
 export class BookService {
@@ -119,18 +119,25 @@ export class BookService {
       if (!book) {
         throw new Error('Book not found');
       }
-  
+
       const deleteResult = await this.book.deleteOne({ _id: id });
-  
+
       if (deleteResult.deletedCount === 0) {
         throw new Error('Failed to delete book');
       }
-  
+
       return { message: 'Book successfully deleted', book };
     } catch (error) {
       console.error('Error removing book:', error.message);
       throw new Error(`Could not remove book: ${error.message}`);
     }
   }
-  
 }
+
+
+
+
+
+`bookni servisini mongosedan 
+ type orm orqalik mysqlga otkazish kerak
+ va userni ham shunday qilish kerak author bolgan `;
